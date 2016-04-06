@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+    <head><head>
+     <title>RNA-seq Count Data</title>
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
+     <style>
+       .container {
+         max-width: 1000px;
+       }
+     </style>
+    </head>
+    <body>
+     <div class="container">
+       <div class="row">
+         <div class="col-sm-5 col-sm-offset-1">
+           <h1>RNA-seq Count Data</h1>
+           <br>
+           <form name="table" method="POST" action="/">
+             <select name="table">
+               {% for tab in counts_tables %}
+                   <option value={{ tab }}>{{ tab }}</option>
+               {% endfor %}
+           </select>
+           <button type="submit">Submit</button>
+           </form>
+           <br>
+           {% for errors in errors %}
+             <h4>{{ errors }}</h4>
+           {% endfor %}
+           <br>
+         </div>
+       </div>
+     </div>
+     <br><br>
+     <script type="text/javascript" src="https://cdn.jsdelivr.net/bootstrap.native/0.9.9/bootstrap-native.min.js"></script>
+    </body>
+</html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.dot {
+  stroke: #000;
+}
+
+.tooltip {
+  position: absolute;
+  width: 200px;
+  height: 28px;
+  pointer-events: none;
+}
+
+var tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var margin = {top: 50, right: 50, bottom: 50, left: 100},
+    width = 550 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var data = {{ results|safe }};
+
+  data.forEach(function(d) {
+    d.pc1 = +d.pc1;
+    d.pc2 = +d.pc2;
+  });
+
+  x.domain(d3.extent(data, function(d) { return d.pc1; })).nice();
+  y.domain(d3.extent(data, function(d) { return d.pc2; })).nice();
+
+var tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("x", width)
+      .attr("y", -6)
+      .style("text-anchor", "end")
+      .text("pc1");
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("pc2")
+
+  svg.selectAll(".dot")
+      .data(data)
+    .enter().append("circle")
+      .attr("class", "dot")
+      .attr("r", 3.5)
+      .attr("cx", function(d) { return x(d.pc1); })
+      .attr("cy", function(d) { return y(d.pc2); })
+      .style("fill", function(d) { return color(d.sample[0]); })
+      .on("mouseover", function(d) {
+          tooltip.transition()
+               .duration(200)
+               .style("opacity", .9);
+          tooltip.html(d.sample)
+               .style("left", (d3.event.pageX + 5) + "px")
+               .style("top", (d3.event.pageY - 28) + "px");
+      })
+      .on("mouseout", function(d) {
+          tooltip.transition()
+               .duration(500)
+               .style("opacity", 0);
+      });
+
+  var legend = svg.selectAll(".legend")
+      .data(color.domain())
+    .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("x", width - 18)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", color);
+
+  legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "end")
+      .text(function(d) { return d; });
+
+
+</script>
