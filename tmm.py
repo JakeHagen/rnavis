@@ -1,3 +1,8 @@
+#Port of edgeR's implementation of the TMM RNAseq normalization method
+#https://github.com/Bioconductor-mirror/edgeR/blob/master/R/calcNormFactors.R
+#TMM method from paper:
+#https://genomebiology.biomedcentral.com/articles/10.1186/gb-2010-11-3-r25
+
 import numpy as np
 
 def calc_factor_weighted(obs, ref, libsize_obs = None, libsize_ref = None,
@@ -21,7 +26,8 @@ def calc_factor_weighted(obs, ref, libsize_obs = None, libsize_ref = None,
     v = (n_o - obs) / n_o / obs + (n_r - ref) / n_r / ref
 
     len_array = log_r.shape[0]
-    fin = np.array([np.isfinite(log_r[i]) and np.isfinite(abs_e[i]) and (abs_e[i] > A_cut_off) for i in range(len_array)])
+    fin = np.array([np.isfinite(log_r[i]) and np.isfinite(abs_e[i])
+                    and (abs_e[i] > A_cut_off) for i in range(len_array)])
 
     log_r = log_r[fin]
     abs_e = abs_e[fin]
@@ -60,8 +66,11 @@ def calc_factor_quantile(data, lib_size, p = 75):
 def calc_norm_factors(obj, lib_size = None, ref_col = None,
                         log_ratio_trim = .3, sum_trim = .05,
                         do_weighting = True, A_cut_off = -1e10, p = 75):
-
-    x = obj.as_matrix()
+    try:
+        x = obj.as_matrix()
+    except AttributeError:
+        x = obj
+        
     if np.isnan(np.sum(x)):
         raise Exception("NaN counts not permitted")
 
@@ -75,8 +84,6 @@ def calc_norm_factors(obj, lib_size = None, ref_col = None,
     f75 = calc_factor_quantile(data = x, lib_size = lib_size, p = 75)
     if not ref_col:
         ref_col = np.argmin(np.absolute(f75 - np.mean(f75)))
-    #if ref_col.shape == 0 or ref_col < 1 or ref_col > x.shape[1]:
-    #    ref_col = 0
     f_array = []
     for i in range(x.shape[1]):
         f_array.append(calc_factor_weighted(obs = x[:,i], ref = x[:,ref_col], libsize_obs = lib_size[i],

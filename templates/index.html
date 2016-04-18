@@ -96,21 +96,32 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var data = {{ results|safe }};
+var axisNames = {
+        pc1: "pc1" + " " + {{ explained_variance[0] }},
+        pc2: "pc2" + " " + {{ explained_variance[1] }},
+        pc3: "pc3" + " " + {{ explained_variance[2] }},
+        pc4: "pc4" + " " + {{ explained_variance[3] }}
+    };
+
+var data = {{ results|safe }}
+
 
   data.forEach(function(d) {
-    d.pc1 = +d.pc1;
-    d.pc2 = +d.pc2;
+      d.pc1 = +d.pc1;
+      d.pc2 = +d.pc2;
+      d.pc3 = +d.pc3;
+      d.pc4 = +d.pc4;
   });
+
 
   x.domain(d3.extent(data, function(d) { return d.pc1; })).nice();
   y.domain(d3.extent(data, function(d) { return d.pc2; })).nice();
 
-var tooltip = d3.select("body").append("div")
+  var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("opacity", 0);
 
-  svg.append("g")
+    svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis)
@@ -121,7 +132,7 @@ var tooltip = d3.select("body").append("div")
       .style("text-anchor", "end")
       .text("pc1");
 
-  svg.append("g")
+    svg.append("g")
       .attr("class", "y axis")
       .call(yAxis)
     .append("text")
@@ -132,7 +143,7 @@ var tooltip = d3.select("body").append("div")
       .style("text-anchor", "end")
       .text("pc2")
 
-  svg.selectAll(".dot")
+    var circles = svg.selectAll(".dot")
       .data(data)
     .enter().append("circle")
       .attr("class", "dot")
@@ -174,4 +185,49 @@ var tooltip = d3.select("body").append("div")
       .text(function(d) { return d; });
 
 
+function changeX(sel){
+    var xAxy = sel.value;
+    x.domain(d3.extent(data, function(d) { return d[xAxy]; })).nice();
+    svg.select(".x.axis").transition().call(xAxis);
+    svg.selectAll(".dot").transition().attr("cx", function(d) {
+        return x(d[xAxy]);
+    });
+    svg.selectAll(".x.axis").selectAll("text.label").text(axisNames[xAxy]);
+  };
+
+function changeY(sel){
+  var yAxy = sel.value;
+  y.domain(d3.extent(data, function(d) { return d[yAxy]; })).nice();
+  svg.select(".y.axis").transition().call(yAxis);
+  svg.selectAll(".dot").transition().attr("cy", function(d) {
+      return y(d[yAxy]);
+  });
+  svg.selectAll(".y.axis").selectAll("text.label").text(axisNames[yAxy]);
+};
+
+
+
+
+
 </script>
+
+<br>
+
+<div id="label"><b>x-Axis:</b></div>
+  <select name="xAX" id="xAXs" onChange="changeX(this)">
+        <option value ="pc1">pc1</option>
+        <option value ="pc2">pc2</option>
+        <option value ="pc3">pc3</option>
+        <option value ="pc4">pc4</option>
+  </select>
+
+<div id="label2"><b>y-Axis:</b></div>
+  <select name="yAX" id="yAXs" onChange="changeY(this)">
+        <option value ="pc2">pc2</option>
+        <option value ="pc1">pc1</option>
+        <option value ="pc3">pc3</option>
+        <option value ="pc4">pc4</option>
+  </select>
+
+  <br>
+</body>
