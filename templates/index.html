@@ -16,25 +16,22 @@
          <div class="col-sm-5 col-sm-offset-1">
            <h1>RNA-seq Count Data</h1>
            <br>
-           <form name="table" method="POST" action="/">
-             <select name="table">
+           <select name="postgres_table" id="postgres_table_id">
                {% for tab in counts_tables %}
                    <option value={{ tab }}>{{ tab }}</option>
                {% endfor %}
            </select>
-           <button type="submit">Submit</button>
-           </form>
-           <br>
-           {% for errors in errors %}
-             <h4>{{ errors }}</h4>
-           {% endfor %}
+           <a id="postgres_table_select_id">submit</a>
+            <br>
            <br>
          </div>
        </div>
      </div>
      <br><br>
-     <script type="text/javascript" src="https://cdn.jsdelivr.net/bootstrap.native/0.9.9/bootstrap-native.min.js"></script>
-    </body>
+
+
+
+      </body>
 </html>
 <meta charset="utf-8">
 <style>
@@ -67,18 +64,23 @@ var tooltip = d3.select("body").append("div")
 
 </style>
 <body>
-<script src="//d3js.org/d3.v3.min.js"></script>
+
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
 <script>
 
 var margin = {top: 50, right: 50, bottom: 50, left: 100},
     width = 550 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
+
 var x = d3.scale.linear()
     .range([0, width]);
 
 var y = d3.scale.linear()
     .range([height, 0]);
+
 
 var color = d3.scale.category10();
 
@@ -90,29 +92,36 @@ var yAxis = d3.svg.axis()
     .scale(y)
     .orient("left");
 
+
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
-  .append("g")
+    .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var axisNames = {
-        pc1: "pc1" + " " + {{ explained_variance[0] }},
-        pc2: "pc2" + " " + {{ explained_variance[1] }},
-        pc3: "pc3" + " " + {{ explained_variance[2] }},
-        pc4: "pc4" + " " + {{ explained_variance[3] }}
-    };
+var table_select = d3.select("#postgres_table_select_id")
 
-var data = {{ results|safe }}
+var load = function() {
+    var postgres_table = document.getElementById("postgres_table_id").value;
+    console.log(document.getElementById("postgres_table_id").value);
+    d3.json("/data", function(error, data) {
+        data.forEach(function(d) {
+            d.pc1 = +d.pc1;
+            d.pc2 = +d.pc2;
+            d.pc3 = +d.pc3;
+            d.pc4 = +d.pc4;
+            d.exp_var1 = +d.exp_var1;
+            d.exp_var2 = +d.exp_var2;
+            d.exp_var3 = +d.exp_var3;
+            d.exp_var4 = +d.exp_var4;
+        });
 
-
-  data.forEach(function(d) {
-      d.pc1 = +d.pc1;
-      d.pc2 = +d.pc2;
-      d.pc3 = +d.pc3;
-      d.pc4 = +d.pc4;
-  });
-
+  var axisNames = {
+          pc1: "pc1" + " " + data[0].exp_var1,
+          pc2: "pc2" + " " + data[0].exp_var2,
+          pc3: "pc3" + " " + data[0].exp_var3,
+          pc4: "pc4" + " " + data[0].exp_var4,
+      };
 
   x.domain(d3.extent(data, function(d) { return d.pc1; })).nice();
   y.domain(d3.extent(data, function(d) { return d.pc2; })).nice();
@@ -121,100 +130,121 @@ var data = {{ results|safe }}
     .attr("class", "tooltip")
     .style("opacity", 0);
 
+  if (svg.selectAll(".y.axis")[0].length < 1){
     svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis)
-    .append("text")
-      .attr("class", "label")
-      .attr("x", width)
-      .attr("y", -6)
-      .style("text-anchor", "end")
-      .text("pc1");
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+      .append("text")
+        .attr("class", "label")
+        .attr("x", width)
+        .attr("y", -6)
+        .style("text-anchor", "end")
+        .text(axisNames["pc1"]);
 
     svg.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
-    .append("text")
-      .attr("class", "label")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("pc2")
+        .attr("class", "y axis")
+        .call(yAxis)
+      .append("text")
+        .attr("class", "label")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text(axisNames["pc2"])
+  } else {
+    svg.select(".x.axis").transition().call(xAxis);
+    svg.selectAll(".x.axis").selectAll("text.label").text(axisNames["pc1"]);
 
-    var circles = svg.selectAll(".dot")
-      .data(data)
-    .enter().append("circle")
+    svg.select(".y.axis").transition().call(yAxis);
+    svg.selectAll(".y.axis").selectAll("text.label").text(axisNames["pc2"]);
+  }
+
+ var circles = svg.selectAll(".dot")
+      .data(data);
+
+    circles.exit().remove();
+
+    circles.enter().append("circle")
       .attr("class", "dot")
       .attr("r", 3.5)
+
+      circles.transition()
       .attr("cx", function(d) { return x(d.pc1); })
       .attr("cy", function(d) { return y(d.pc2); })
       .style("fill", function(d) { return color(d.sample[0]); })
-      .on("mouseover", function(d) {
-          tooltip.transition()
-               .duration(200)
-               .style("opacity", .9);
-          tooltip.html(d.sample)
-               .style("left", (d3.event.pageX + 5) + "px")
-               .style("top", (d3.event.pageY - 28) + "px");
-      })
+
+    circles.on("mouseover", function(d) {
+              tooltip.transition()
+                   .duration(200)
+                   .style("opacity", .9);
+              tooltip.html(d.sample)
+                   .style("left", (d3.event.pageX + 5) + "px")
+                   .style("top", (d3.event.pageY - 28) + "px");
+          })
       .on("mouseout", function(d) {
-          tooltip.transition()
-               .duration(500)
-               .style("opacity", 0);
-      });
+              tooltip.transition()
+                   .duration(500)
+                   .style("opacity", 0);
+        });
+
 
   var legend = svg.selectAll(".legend")
       .data(color.domain())
-    .enter().append("g")
+      .enter().append("g")
       .attr("class", "legend")
       .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
+
   legend.append("rect")
-      .attr("x", width - 18)
+      .attr("x", width)
       .attr("width", 18)
       .attr("height", 18)
       .style("fill", color);
 
+
   legend.append("text")
-      .attr("x", width - 24)
+      .attr("x", width - 6)
       .attr("y", 9)
       .attr("dy", ".35em")
       .style("text-anchor", "end")
       .text(function(d) { return d; });
 
-
-function changeX(sel){
-    var xAxy = sel.value;
+  d3.select("[name=xAX]").on("change", function(){
+    xAxy = this.value;
+    console.log(xAxy)
     x.domain(d3.extent(data, function(d) { return d[xAxy]; })).nice();
+
     svg.select(".x.axis").transition().call(xAxis);
+
     svg.selectAll(".dot").transition().attr("cx", function(d) {
         return x(d[xAxy]);
     });
     svg.selectAll(".x.axis").selectAll("text.label").text(axisNames[xAxy]);
-  };
-
-function changeY(sel){
-  var yAxy = sel.value;
-  y.domain(d3.extent(data, function(d) { return d[yAxy]; })).nice();
-  svg.select(".y.axis").transition().call(yAxis);
-  svg.selectAll(".dot").transition().attr("cy", function(d) {
-      return y(d[yAxy]);
   });
-  svg.selectAll(".y.axis").selectAll("text.label").text(axisNames[yAxy]);
+
+  d3.select("[name=yAX]").on("change", function(){
+    yAxy = this.value;
+    console.log(yAxy)
+    y.domain(d3.extent(data, function(d) { return d[yAxy]; })).nice();
+    svg.select(".y.axis").transition().call(yAxis);
+    svg.selectAll(".dot").transition().attr("cy", function(d) {
+        return y(d[yAxy]);
+    });
+    svg.selectAll(".y.axis").selectAll("text.label").text(axisNames[yAxy]);
+  });
+
+})
+.header("Content-Type","application/x-www-form-urlencoded")
+  .send("POST","postgres_table=" + postgres_table);
 };
+load();
 
-
-
-
-
+table_select.on("click", load)
 </script>
 
-<br>
-
 <div id="label"><b>x-Axis:</b></div>
-  <select name="xAX" id="xAXs" onChange="changeX(this)">
+  <select name="xAX" id="xAXs">
         <option value ="pc1">pc1</option>
         <option value ="pc2">pc2</option>
         <option value ="pc3">pc3</option>
@@ -222,12 +252,18 @@ function changeY(sel){
   </select>
 
 <div id="label2"><b>y-Axis:</b></div>
-  <select name="yAX" id="yAXs" onChange="changeY(this)">
+  <select name="yAX" id="yAXs">
         <option value ="pc2">pc2</option>
         <option value ="pc1">pc1</option>
         <option value ="pc3">pc3</option>
         <option value ="pc4">pc4</option>
   </select>
 
-  <br>
-</body>
+<label>Check Batch:
+    {% for samples in sample_names %}
+        {{ samples }}<input type="text" id="batch_{{ samples }}" name="batch" style="width: 30px;"></input>
+    {% endfor %}
+</label>
+<span id="batchButton" style="cursor: pointer; text-decoration: underline">
+    Submit batch array
+</span>
