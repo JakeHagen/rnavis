@@ -20,7 +20,7 @@ meta.reflect(engine)
 def index():
     all_tables = list(meta.tables)
     counts_tables = [x for x in all_tables if "pipeline" not in x]
-    return render_template('index.html', counts_tables = counts_tables)                            #sample_names = sample_names, #explained_variance = explained_variance)
+    return render_template('index.html', counts_tables = counts_tables)
 
 @app.route('/data', methods = ['GET', 'POST'])
 def data():
@@ -33,7 +33,7 @@ def data():
 @app.route('/batch', methods = ['GET', 'POST'])
 def batch():
     batch_list = request.args.get(['batch'])
-    #        print(batch_list)
+    print(batch_list)
     #        mat_combat = combat.combat(mat_normed, batch = [1,1,1,1,2,2,2,1,1,1,1,2,2,2],
     #            model = np.array([[1,1], [1,1], [1,1], [1,1], [1,1], [1,1], [1,1],
     #                            [1,0], [1,0], [1,0], [1,0], [1,0], [1,0], [1,0]]))
