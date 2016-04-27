@@ -296,22 +296,28 @@ var load = function() {
 };
 load();
 
+var send_batch = function() {
+    var batch_array = document.getElementsByName("batch");
+    var postgres_table = document.getElementById("postgres_table_id").value;
+    var bat = []
+    for (i = 0; i < batch_array.length; i++) {
+          bat += batch_array[i].value;
+    }
+    var j = {batch: bat, table: postgres_table}
+    console.log(bat);
+    d3.json("/batch", callback)
+    .header("Content-Type","application/json")
+    .send("POST", JSON.stringify(j));
+};
+
 var table_select = d3.select("#postgres_table_select_id");
 table_select.on("click", load);
 
-var send_batch = function() {
-    var batch_list = document.getElementsByName("batch").value;
-    console.log(document.getElementsByName("batch").value);
-    d3.json("/batch", callback)
-    .header("Content-Type","application/x-www-form-urlencoded")
-    .send("POST", "batch=" + batch_list);
-};
-
-var batch_submit = d3.select("#batch_list");
+var batch_submit = d3.select("#batch_list_id");
 batch_submit.on("click", send_batch);
 
 </script>
 
 <div id="xaxis_select"><b>X axis: </b></div>
 <div id="yaxis_select"><b>Y axis: </b></div>
-<div id="batch_list"><b>Batch_list: </b></div>
+<a id="batch_list_id">Batch_list: </a>
