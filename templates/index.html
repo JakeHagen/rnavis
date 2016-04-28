@@ -22,6 +22,7 @@
                {% endfor %}
            </select>
            <a id="postgres_table_select_id">submit</a>
+           <a id="batch_list_id">Batch_list: </a>
             <br>
            <br>
          </div>
@@ -57,10 +58,6 @@ body {
   height: 28px;
   pointer-events: none;
 }
-
-var tooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
 
 </style>
 <body>
@@ -320,4 +317,3 @@ batch_submit.on("click", send_batch);
 
 <div id="xaxis_select"><b>X axis: </b></div>
 <div id="yaxis_select"><b>Y axis: </b></div>
-<a id="batch_list_id">Batch_list: </a>
