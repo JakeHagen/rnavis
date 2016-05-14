@@ -1,26 +1,13 @@
-from flask import Flask, render_template
+from rnavis import app
 from flask_restful import Resource, Api, reqparse
-import sqlalchemy as sqly
-import json
-import config
 import pandas
-import ge
-import combat
+import rnavis.ge as ge
+import rnavis.combat as combat
+import sqlalchemy as sql
+import rnavis.config as config
 
-app = Flask(__name__)
+
 api = Api(app)
-
-engine = sqly.create_engine(config.psql)
-
-
-@app.route('/')
-def index():
-    insp = sqly.engine.reflection.Inspector.from_engine(engine)
-    schemas = insp.get_schema_names()
-    table_dict = {s: insp.get_table_names(schema=s) for s in schemas}
-    table_dict = {s: [x for x in t if "voom" not in x]
-                  for s, t in table_dict.items()}
-    return render_template('index.html', counts_tables=json.dumps(table_dict))
 
 post_parser = reqparse.RequestParser()
 post_parser.add_argument('schema', dest='schema', required=True,
@@ -31,6 +18,8 @@ post_parser.add_argument('table', dest='table', required=True, location='json',
 post_parser.add_argument('batch', dest='batch', required=False,
                          location='json',
                          help='list of ints which specify batch')
+
+engine = sql.create_engine(config.psql)
 
 
 class pca_points(Resource):
@@ -70,6 +59,3 @@ class pca_points(Resource):
         return results
 
 api.add_resource(pca_points, '/data')
-
-if __name__ == '__main__':
-    app.run(debug=True)

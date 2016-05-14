@@ -1,0 +1,31 @@
+<script type="text/javascript">
+(function() {
+  var httpRequest;
+  document.getElementById("postgres_table_select_id").onclick = function() {
+      var postgres_table = document.getElementById("postgres_table_id").value;
+      console.log(postgres_table)
+      makeRequest('data', postgres_table);
+  };
+
+  function makeRequest(url, postgres_table) {
+    httpRequest = new XMLHttpRequest();
+
+    if (!httpRequest) {
+      alert('Giving up :( Cannot create an XMLHTTP instance');
+      return false;
+    }
+    httpRequest.onreadystatechange = alertContents;
+    httpRequest.open('POST', url);
+    httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    httpRequest.send('postgres_table=' + encodeURIComponent(postgres_table));
+  }
+
+  function alertContents() {
+    if (httpRequest.readyState === XMLHttpRequest.DONE) {
+      if (httpRequest.status !== 200) {
+        alert('There was a problem with the request.');
+      }
+    }
+  }
+});
+</script>
