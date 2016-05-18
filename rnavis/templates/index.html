@@ -3,40 +3,66 @@
     <head>
      <meta charset="UTF-8" />
      <title>RNAvis</title>
-     <script src="https://fb.me/react-15.0.2.js"></script>
-     <script src="https://fb.me/react-dom-15.0.2.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+     <!-- Latest compiled and minified CSS -->
+     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.6/superhero/bootstrap.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+    integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+    crossorigin="anonymous"></script>
+
     </head>
     <body>
-        <div class="container">
-          <div class="row">
-            <div class="col-sm-5 col-sm-offset-1">
-              <h1>RNAvis</h1>
-              <br>
-            <select id="postgres_schema_id"></select>
-            <select id="postgres_table_id"></select>
-            <a id="postgres_table_select_id">submit</a>
-            <br>
-            <a id="batch_submit_id">submit</a>
+    <nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand">RNAvis</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+      </ul>
+     </div>
+  </div>
+</nav>
+    </div>
+</div>
+<div class="form-group">
+    <div class="row">
+      <div class="col-sm-2">
+        <select class="form-control input-sm" id="postgres_schema_id"></select>
+        <br>
+        <select class="form-control input-sm" id="postgres_table_id"></select>
+        <br>
+        <button type="button" class="btn btn-primary" id="postgres_table_select_id">submit</button>
+      </div>
+  </div>
+</div>
     </body>
 </html>
 <style>
 
 body {
   font: 10px sans-serif;
+  fill: #fff
 }
 
 .axis path,
 .axis line {
   fill: none;
-  stroke: #000;
+  stroke: #fff;
   shape-rendering: crispEdges;
 }
 
 .dot {
-  stroke: #000;
+  stroke: #fff;
 }
 
 .tooltip {
@@ -246,17 +272,6 @@ var callback = function(error, data) {
         options_y.text(function (d) { return d; })
                 .attr("value", function (d) { return d; });
 
-        var batch_list = d3.selectAll("label")
-                            .data(data);
-
-        batch_list.exit().remove();
-        batch_list.enter().append("label")
-        batch_list.text(function (d) { return d.sample; });
-
-        var sample_batch = d3.selectAll("label")
-                            .append("input")
-                            .attr("style", "width: 30px")
-                            .attr("name", "batch")
 
     } else {
       var drop_downX = d3.select("#xaxis_select")
@@ -276,6 +291,18 @@ var callback = function(error, data) {
                              .attr("value", function (d) { return d; });
 
     }
+
+    var batch_list = d3.selectAll("label")
+                        .data(data);
+
+    batch_list.exit().remove();
+    batch_list.enter().append("label")
+    batch_list.text(function (d) { return d.sample; });
+
+    var sample_batch = d3.selectAll("label")
+                        .append("input")
+                        .attr("style", "width: 30px")
+                        .attr("name", "batch")
 
     d3.select("[name=xAx]").on("change", function(){
     xAxy = this.value;
@@ -331,10 +358,14 @@ var send_batch = function() {
 var table_select = d3.select("#postgres_table_select_id");
 table_select.on("click", load);
 
-var batch_submit = d3.select("#batch_submit_id");
-batch_submit.on("click", send_batch);
+
 
 </script>
 
 <div id="xaxis_select"><b>X axis: </b></div>
 <div id="yaxis_select"><b>Y axis: </b></div>
+<button type="button" class="btn btn-primary" id="batch_submit_id">submit batch</button>
+<script>
+var batch_submit = d3.select("#batch_submit_id");
+batch_submit.on("click", send_batch);
+</script>
