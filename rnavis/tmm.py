@@ -1,7 +1,7 @@
-#Port of edgeR's implementation of the TMM RNAseq normalization method
-#https://github.com/Bioconductor-mirror/edgeR/blob/master/R/calcNormFactors.R
-#TMM method from paper:
-#https://genomebiology.biomedcentral.com/articles/10.1186/gb-2010-11-3-r25
+# Port of edgeR's implementation of the TMM RNAseq normalization method
+# https://github.com/Bioconductor-mirror/edgeR/blob/master/R/calcNormFactors.R
+# TMM method from paper:
+# https://genomebiology.biomedcentral.com/articles/10.1186/gb-2010-11-3-r25
 
 import numpy as np
 
@@ -27,8 +27,8 @@ def calc_factor_weighted(obs, ref, libsize_obs=None, libsize_ref=None,
     v = (n_o - obs) / n_o / obs + (n_r - ref) / n_r / ref
 
     len_array = log_r.shape[0]
-    fin = np.array([np.isfinite(log_r[i]) and np.isfinite(abs_e[i])
-                    and (abs_e[i] > A_cut_off) for i in range(len_array)])
+    fin = np.array([np.isfinite(log_r[i]) and np.isfinite(abs_e[i]) and
+                    (abs_e[i] > A_cut_off) for i in range(len_array)])
 
     log_r = log_r[fin]
     abs_e = abs_e[fin]
@@ -48,8 +48,7 @@ def calc_factor_weighted(obs, ref, libsize_obs=None, libsize_ref=None,
     abs_e_rank = np.empty(len(abs_e), int)
     abs_e_rank[abs_e_temp] = np.arange(len(abs_e))
 
-    keep = np.array([(lol <= log_r_rank[i] <= hil)
-                    and
+    keep = np.array([(lol <= log_r_rank[i] <= hil) and
                     (los <= abs_e_rank[i] <= his)
                     for i in range(len(abs_e_rank))])
 
