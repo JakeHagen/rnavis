@@ -20,91 +20,48 @@ post_parser.add_argument('batch', dest='batch', required=False,
                          location='json',
                          help='list of ints which specify batch')
 
-get_parser = reqparse.RequestParser()
-get_parser.add_argument('schema', dest='schema', required=True,
-                        location='headers',
-                        help='The schema representing experiment name')
-get_parser.add_argument('table', dest='table', required=True,
-                        location='headers',
-                        help='Table name with count data')
-get_parser.add_argument('batch', dest='batch', required=False,
-                        location='headers',
-                        help='list of ints which specify batch')
-
 engine = sql.create_engine(config.psql)
 
 
 class pca_points(Resource):
-    def get(self):
-        args = get_parser.parse_args()
-        print(args)
-        if args.batch:
-            try:
-                rna_exp = ge.gene_expression(
-                    pandas.read_sql_table(args.table + "_voom",
-                                          index_col='Gene',
-                                          con=engine,
-                                          schema=args.schema))
-                rna_exp_batch = ge.gene_expression(
-                    combat.combat(rna_exp.df, batch=list(args.batch)))
-                results = ge.pca_json(rna_exp_batch, voom=False)
-            except:   # Need to catch error psycopg2.ProgrammingError
-                print("need voom normalized matrix before batch correcting")
-        else:
-            try:
-                rna_exp = ge.gene_expression(
-                    pandas.read_sql_table(args.table + "_voom",
-                                          index_col='Gene',
-                                          con=engine,
-                                          schema=args.schema))
-                results = ge.pca_json(rna_exp, voom=False)
-            except:
-                rna_exp = ge.gene_expression(
-                    pandas.read_sql_table(args.table,
-                                          index_col='Gene',
-                                          con=engine,
-                                          schema=args.schema))
-                voom_df = ge.voom_out(rna_exp)
-                print("writing to db")
-                voom_df.to_sql(args.table + "_voom",
-                               con=engine, schema=args.schema)
-                results = ge.pca_json(rna_exp, voom=True)
-        return results
-
     def post(self):
         args = post_parser.parse_args()
         print(args)
         if args.batch:
             try:
-                rna_exp = ge.gene_expression(
-                    pandas.read_sql_table(args.table + "_voom",
-                                          index_col='Gene',
-                                          con=engine,
-                                          schema=args.schema))
-                rna_exp_batch = ge.gene_expression(
-                    combat.combat(rna_exp.df, batch=list(args.batch)))
-                results = ge.pca_json(rna_exp_batch, voom=False)
+                # rna_exp = ge.gene_expression(
+                rna_exp = pandas.read_sql_table(args.table + "_voom",
+                                                index_col='Gene',
+                                                con=engine,
+                                                schema=args.schema)  # )
+                # rna_exp_batch = ge.gene_expression(
+                rna_exp_batch = combat.combat(rna_exp,
+                                              batch=list(args.batch))  # )
+                results = ge.pca_json(rna_exp_batch)  # , voom=False)
+                results = results.to_dict(orient='records')
             except:   # Need to catch error psycopg2.ProgrammingError
                 print("need voom normalized matrix before batch correcting")
         else:
             try:
-                rna_exp = ge.gene_expression(
-                    pandas.read_sql_table(args.table + "_voom",
-                                          index_col='Gene',
-                                          con=engine,
-                                          schema=args.schema))
-                results = ge.pca_json(rna_exp, voom=False)
+                # rna_exp = ge.gene_expression(
+                rna_exp = pandas.read_sql_table(args.table + "_voom",
+                                                index_col='Gene',
+                                                con=engine,
+                                                schema=args.schema)  # )
+                results = ge.pca_json(rna_exp)  # , voom=False)
+                results = results.to_dict(orient='records')
             except:
-                rna_exp = ge.gene_expression(
-                    pandas.read_sql_table(args.table,
-                                          index_col='Gene',
-                                          con=engine,
-                                          schema=args.schema))
-                voom_df = ge.voom_out(rna_exp)
-                print("writing to db")
-                voom_df.to_sql(args.table + "_voom",
-                               con=engine, schema=args.schema)
-                results = ge.pca_json(rna_exp, voom=True)
+                # rna_exp = ge.gene_expression(
+                rna_exp = pandas.read_sql_table(args.table,
+                                                index_col='Gene',
+                                                con=engine,
+                                                schema=args.schema)  # )
+                norm_df = ge.norm_gene_matrix(rna_exp)
+                # print("writing to db")
+                # voom_df.to_sql(args.table + "_voom",
+                #                con=engine, schema=args.schema)
+                results = ge.pca_json(norm_df)  # rna_exp, voom=True)
+                results = results.to_dict(orient='records')
         return results
 
 api.add_resource(pca_points, '/data')
