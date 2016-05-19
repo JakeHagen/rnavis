@@ -3,6 +3,8 @@ import numpy as np
 import pandas
 from sklearn.decomposition import PCA as sklearnPCA
 
+"""
+Most likely will be removed as info can just be extracted from pandas DF
 
 class gene_expression:
 
@@ -19,15 +21,34 @@ class gene_expression:
         self.number_of_groups = len(set(
             [''.join([i for i in x if not i.isdigit()]) for x in self.samples]
             ))
+"""
 
 
-def voom_out(ge):
-    mat_cpm = ge.df / (ge.lib_size / 1e6)
-    mat = ge.df[(mat_cpm > 1).sum(axis=1) >=
-                int(len(ge.samples) / ge.number_of_groups)]
-    norm_factors = (ge.lib_size * tmm.calc_norm_factors(mat)) + 1
-    mat_five = mat + .5
-    return np.log2(mat_five / norm_factors * 1e6)
+def counts_per_million(mat):
+    lib_size = mat.sum(axis=0)
+    return mat / (lib_size / 1e6)
+
+
+def rm_low_counts(mat, samples_per_group=None):
+    mat_cpm = counts_per_million(mat)
+    if not samples_per_group:
+        samples_per_group = int(mat.shape[1]/2)
+    # remove genes that do not have at least 1 cpm in at n samples
+    # where n is the number of samples in smallest group
+    to_rm = (mat_cpm > 1).sum(axis=1) >= samples_per_group
+    return mat[to_rm]
+
+
+def norm_gene_matrix(mat):
+    try:
+        samples_per_group = mat.columns.values
+        mat = rm_low_counts(mat=mat, samples_per_group=samples_per_group)
+    except AttributeError:
+        mat = rm_low_counts(mat)
+    lib_size = mat.sum(axis=0)
+    norm_factors = (lib_size * tmm.calc_norm_factors(mat)) + 1
+    # mat_five = mat + .5
+    return np.log2(mat / norm_factors * 1e6)
 
 
 def pc_to_keep(exp_var_list, var):
@@ -49,17 +70,14 @@ def append_exp_var(pc_df, exp_var_list, num_pc=None):
     return pc_df
 
 
-def pca_json(ge, voom=True):
-    if voom:
-        mat_normed = voom_out(ge)
-    else:
-        mat_normed = ge.matrix
-    sklearn_pca = sklearnPCA(n_components=4)
-    pca_points = sklearn_pca.fit_transform(mat_normed.T)
-    exp_var, num_pc = pc_to_keep(sklearn_pca.explained_variance_ratio_, .0001)
+def pca_json(df, n_components=4, exp_var_min=.05):
+    sklearn_pca = sklearnPCA(n_components=n_components)
+    pca_points = sklearn_pca.fit_transform(df.T)
+    exp_var, num_pc = pc_to_keep(sklearn_pca.explained_variance_ratio_,
+                                 exp_var_min)
     pca_points_df = trim_pc(pca_points, num_pc)
-    pca_points_df['sample'] = ge.samples
+    pca_points_df['sample'] = df.columns.values
     pca_points_df = append_exp_var(pc_df=pca_points_df,
                                    exp_var_list=exp_var,
                                    num_pc=num_pc)
-    return pca_points_df.to_dict(orient='records')
+    return pca_points_df
