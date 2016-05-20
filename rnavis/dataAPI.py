@@ -1,11 +1,11 @@
 from rnavis import app
 from flask_restful import Resource, Api, reqparse
 import pandas
-import rnavis.ge as ge
+import rnavis.gene_expression as ge
 import rnavis.combat as combat
 import sqlalchemy as sql
 import rnavis.config as config
-import psycopg2
+import psycopg2  # needs to imported because sqlalchemy uses it by default
 
 
 api = Api(app)
