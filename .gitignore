@@ -1,1 +1,4 @@
-/home/jake/Dropbox/rnavis/rnavis/config.py
+/rnavis/config.py
+*.pyc
+.env
+.venv/
