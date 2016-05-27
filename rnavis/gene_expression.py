@@ -33,7 +33,7 @@ def norm_gene_matrix(mat):
     mat = rm_low_counts(mat=mat)
     lib_size = mat.sum(axis=0)
     norm_factors = (lib_size * tmm.calc_norm_factors(mat)) + 1
-    # mat = mat + .5
+    mat = mat + .5
     return np.log2(mat / norm_factors * 1e6)
 
 

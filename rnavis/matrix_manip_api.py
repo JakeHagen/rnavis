@@ -3,9 +3,8 @@ from flask_restful import Resource, Api, reqparse
 import pandas
 import rnavis.gene_expression as ge
 import sqlalchemy as sql
-import rnavis.config as config
 import psycopg2  # needs to imported because sqlalchemy uses it by default
-
+import os
 api = Api(app)
 
 post_parser = reqparse.RequestParser()
@@ -18,7 +17,8 @@ post_parser.add_argument('batch', dest='batch', required=False,
                          location='json',
                          help='list of ints which specify batch')
 
-engine = sql.create_engine(config.psql)
+engine = os.environ.get("ENGINE")
+engine = sql.create_engine(engine)
 
 mm = ge.matrix_manipulation()
 
@@ -46,6 +46,7 @@ class pca_points(Resource):
                                                con=engine,
                                                schema=args.schema)
                 mm.add_counts_matrix(name=matrix_name, counts_matrix=counts)
+                print(mm.get_norm_matrix(name=matrix_name))
                 results = ge.pca_json(mm.get_norm_matrix(name=matrix_name))
         return results.to_dict(orient='records')
 

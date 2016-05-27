@@ -2,11 +2,10 @@ from rnavis import app
 from flask import render_template
 import sqlalchemy as sql
 from json import dumps
-import rnavis.config as config
+import os
 
-
-engine = sql.create_engine(config.psql)
-
+engine = os.environ.get("ENGINE")
+engine = sql.create_engine(engine)
 
 @app.route('/')
 def index():
