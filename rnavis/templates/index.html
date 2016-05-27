@@ -244,9 +244,7 @@ var callback = function(error, data) {
       .attr("height", 18)
       .style("fill", color);
 
-    legend.exit().remove()
-
-    legend.enter().append("text")
+    legend.append("text")
       .attr("x", width - 6)
       .attr("y", 9)
       .attr("dy", ".35em")
