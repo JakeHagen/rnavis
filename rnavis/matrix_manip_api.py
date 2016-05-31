@@ -41,12 +41,15 @@ class pca_points(Resource):
                 matrix_name = args.schema + '_' + args.table
                 results = ge.pca_json(mm.get_norm_matrix(name=matrix_name))
             except KeyError:
-                counts = pandas.read_sql_table(args.table,
+                if args.table == 'gene counts':
+                    table_name = "protein_gene_counts"
+                if args.table == 'nascent counts':
+                    table_name = "protein_intron_counts"
+                counts = pandas.read_sql_table(table_name,
                                                index_col='Gene',
                                                con=engine,
                                                schema=args.schema)
                 mm.add_counts_matrix(name=matrix_name, counts_matrix=counts)
-                print(mm.get_norm_matrix(name=matrix_name))
                 results = ge.pca_json(mm.get_norm_matrix(name=matrix_name))
         return results.to_dict(orient='records')
 
