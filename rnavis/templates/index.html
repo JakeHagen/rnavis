@@ -158,9 +158,16 @@ var callback = function(error, data) {
           pc4: "pc4" + " " + data[0].exp_var4,
       };
 
-    var testnames = [
+    var testnamesx = [
       "pc1",
       "pc2",
+      "pc3",
+      "pc4"
+    ]
+
+    var testnamesy = [
+      "pc2",
+      "pc1",
       "pc3",
       "pc4"
     ]
@@ -255,7 +262,7 @@ var callback = function(error, data) {
                         .attr("name", "xAx");
 
       var options_x = dd_x.selectAll("option")
-                            .data(testnames)
+                            .data(testnamesx)
                             .enter()
                             .append("option");
         options_x.text(function (d) { return d; })
@@ -265,7 +272,7 @@ var callback = function(error, data) {
                         .attr("name", "yAx");
 
       var options_y = dd_y.selectAll("option")
-                          .data(testnames)
+                          .data(testnamesy)
                           .enter()
                           .append("option");
         options_y.text(function (d) { return d; })
@@ -275,7 +282,7 @@ var callback = function(error, data) {
     } else {
       var drop_downX = d3.select("#xaxis_select")
       var optionsX = drop_downX.selectAll("option")
-                        .data(testnames);
+                        .data(testnamesx);
                      optionsX.exit().remove();
                      optionsX.enter().append("option");
                      optionsX.text(function (d) { return d; })
@@ -283,7 +290,7 @@ var callback = function(error, data) {
 
       var drop_downX = d3.select("#xaxis_select")
       var optionsX = drop_downX.selectAll("option")
-                        .data(testnames);
+                        .data(testnamesy);
                     optionsX.exit().remove();
                     optionsX.enter().append("option");
                     optionsX.text(function (d) { return d; })
