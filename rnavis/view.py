@@ -12,8 +12,8 @@ engine = sql.create_engine(engine)
 def index():
     insp = sql.engine.reflection.Inspector.from_engine(engine)
     schemas = [s for s in insp.get_schema_names()
-               if s not in ["test", "information_schema",
-                            "public", "pipeline_test"]]
+               if s not in ["information_schema", "public"]]
+    schemas = [s for s in schemas if 'test' not in s]
     table_dict = {s: ['gene counts', 'nascent counts'] for s in schemas}
     # table_dict = {s: insp.get_table_names(schema=s) for s in schemas}
     # table_dict = {s: [x for x in t] for s, t in table_dict.items()}

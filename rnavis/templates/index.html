@@ -220,8 +220,7 @@ var callback = function(error, data) {
       circles.transition()
       .attr("cx", function(d) { return x(d.pc1); })
       .attr("cy", function(d) { return y(d.pc2); })
-      .style("fill", function(d) { return color(d.sample[0]); })
-
+      .style("fill", function(d) { return color(d.sample.replace(/[0-9]/g, '')); })
     circles.on("mouseover", function(d) {
               tooltip.transition()
                    .duration(200)

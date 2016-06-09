@@ -1,8 +1,10 @@
 import rnavis.tmm as tmm
+#import tmm
 import numpy as np
 import pandas
 from sklearn.decomposition import PCA as sklearnPCA
 from rnavis.combat import combat
+#import combat
 
 
 def counts_per_million(mat):
@@ -56,7 +58,7 @@ def append_exp_var(pc_df, exp_var_list, num_pc=None):
     return pc_df
 
 
-def pca_json(df, n_components=4, exp_var_min=.05):
+def pca_json(df, n_components=4, exp_var_min=.0001):
     sklearn_pca = sklearnPCA(n_components=n_components)
     pca_points = sklearn_pca.fit_transform(df.T)
     exp_var, num_pc = pc_to_keep(sklearn_pca.explained_variance_ratio_,
